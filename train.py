@@ -98,6 +98,11 @@ def train():
             train_summary_dir = os.path.join(out_dir, "summaries", "train")
             train_summary_writer = tf.summary.FileWriter(train_summary_dir, sess.graph)
 
+            # Test summaries
+            test_summary_op = tf.summary.merge([loss_summary, acc_summary])
+            test_summary_dir = os.path.join(out_dir, "summaries", "test")
+            test_summary_writer = tf.summary.FileWriter(test_summary_dir, sess.graph)
+
             # Checkpoint directory. Tensorflow assumes this directory already exists so we need to create it
             checkpoint_dir = os.path.abspath(os.path.join(out_dir, "checkpoints"))
             checkpoint_prefix = os.path.join(checkpoint_dir, "model")
@@ -122,8 +127,9 @@ def train():
             # w1 = data_helpers.softmax(w1)
             # w2 = data_helpers.softmax(w2)
             # input_features = (w1*train_x + w2*train_x)/2
+
             # Generate batches
-            batches = data_helpers.batch_iter(list(zip(train_x, pos1, pos2, label, y)),
+            batches = data_helpers.batch_iter(list(zip(train_x, train_p1, train_p2, label, y)),
                                               FLAGS.batch_size, FLAGS.num_epochs)
             # Training loop. For each batch...
             best_f1 = 0.0  # For save checkpoint(model)
@@ -150,33 +156,17 @@ def train():
                 # Evaluation
                 if step % FLAGS.evaluate_every == 0:
                     print("\nEvaluation:")
-                    # Generate batches
-                    test_batches = data_helpers.batch_iter(list(zip(test_text, test_pos1, test_pos2, test_label, test_y)),
-                                                           FLAGS.batch_size, 1, shuffle=False)
-                    # Training loop. For each batch...
-                    losses = 0.0
-                    accuracy = 0.0
-                    predictions = []
-                    iter_cnt = 0
-                    for test_batch in test_batches:
-                        test_bx, test_bp1, test_bp2, test_lbl, test_by = zip(*test_batch)
-                        feed_dict = {
-                            cnn.input_text: test_bx,
-                            cnn.input_p1: test_bp1,
-                            cnn.input_p2: test_bp2,
-                            cnn.input_label: test_lbl,
-                            cnn.input_y: test_by,
-                            cnn.dropout_keep_prob: 1.0
-                        }
-                        loss, acc, pred = sess.run(
-                            [cnn.loss, cnn.accuracy, cnn.predictions], feed_dict)
-                        losses += loss
-                        accuracy += acc
-                        predictions += pred.tolist()
-                        iter_cnt += 1
-                    losses /= iter_cnt
-                    accuracy /= iter_cnt
-                    predictions = np.array(predictions, dtype='int')
+                    feed_dict = {
+                        cnn.input_text: test_x,
+                        cnn.input_p1: test_p1,
+                        cnn.input_p2: test_p2,
+                        cnn.input_label: test_label,
+                        cnn.input_y: test_y,
+                        cnn.dropout_keep_prob: 1.0
+                    }
+                    summaries, loss, accuracy, predictions = sess.run(
+                        [test_summary_op, cnn.loss, cnn.accuracy, cnn.predictions], feed_dict)
+                    test_summary_writer.add_summary(summaries, step)
 
                     logger.logging_eval(step, loss, accuracy, predictions)
 
