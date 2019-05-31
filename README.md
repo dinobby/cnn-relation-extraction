@@ -11,7 +11,7 @@ Tensorflow Implementation of Deep Learning Approach for Relation Extraction Chal
 ### Train
 * Train data is located in "*<U>SemEval2010_task8_all_data/SemEval2010_task8_training/TRAIN_FILE.TXT*</U>".
 * "[GoogleNews-vectors-negative300](https://code.google.com/archive/p/word2vec/)" is used as pre-trained word2vec model.
-* Performance (accuracy and f1-socre) outputs during training are **NOT OFFICIAL SCORE** of *SemEval 2010 Task 8*. To compute the official performance, you should proceed the follow [Evaluation](#evaluation) step with checkpoints obtained by training.
+* You may need to chage the directory of embedding file.
 
 ##### Display help message:
 ```bash
@@ -21,17 +21,6 @@ $ python train.py --help
 ```bash
 $ python train.py --embedding_path "GoogleNews-vectors-negative300.bin"
 ```
-
-### Evaluation
-* You can get an **OFFICIAL SCORE** of *SemEval 2010 Task 8* for test data by following this step. [README](SemEval2010_task8_all_data/SemEval2010_task8_scorer-v1.2/README.txt) describes how to evaluate the official score.
-* Test data is located in "<U>*SemEval2010_task8_all_data/SemEval2010_task8_testing_keys/TEST_FILE_FULL.TXT*</U>".
-* **MUST GIVE `--checkpoint_dir` ARGUMENT**, checkpoint directory from training run, like below example.
-
-##### Evaluation Example:
-```bash
-$ python eval.py --checkpoint_dir "runs/1523902663/checkpoints/"
-```
-
 
 ## Results
 #### Officiail Performance
